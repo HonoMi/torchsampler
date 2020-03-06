@@ -1,7 +1,6 @@
 import torch
-from torchvision.datasets.vision import VisionDataset
 
-from torchsampler import ImbalancedDatasetSampler
+from torchsampler import ImbalancedDatasetSampler, DatasetInterface
 
 
 def compare_sampler(dataset, label_fn):
@@ -15,7 +14,8 @@ def compare_sampler(dataset, label_fn):
             dataset,
             sampler=ImbalancedDatasetSampler(
                 dataset,
-                callback_get_label=label_fn),
+                label_fn
+            ),
             batch_size=100,
         )
     }
@@ -39,11 +39,8 @@ def compare_sampler(dataset, label_fn):
 
 if __name__ == '__main__':
 
-    class MyDataset(VisionDataset):
+    class MyDataset(DatasetInterface):
         """クラス0に比べて1の方が多いようなデータセット"""
-
-        def __init__(self):
-            super().__init__(None)
 
         def __getitem__(self, index):
             mod = index % 3

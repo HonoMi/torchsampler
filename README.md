@@ -1,10 +1,9 @@
 # PyTorch Imbalanced Dataset Sampler
-[ufoym/imbalanced-dataset-sampler](https://github.com/ufoym/imbalanced-dataset-sampler)の使い方．
+[ufoym/imbalanced-dataset-sampler](https://github.com/ufoym/imbalanced-dataset-sampler)からtorchvisionなどの依存を排除したライブラリ．
 
 ## Installation
 ```sh
-pip install git+https://github.com/ufoym/imbalanced-dataset-sampler.git
-pip install --upgrade pillow==6.2.1    # pillow最新版だと上記ライブラリは動かないかも．
+pip install git+https://github.com/HonoMi/pytorch-imbalanced-dataset-sampler.git@master
 ```
 
 ## example
