@@ -20,10 +20,14 @@ class _BaseDataLoaderIter(object):
         # data = self._dataset_fetcher.fetch(index)  # may raise StopIteration
         if isinstance(index, list):
             template_instance = self._dataset[index[0]]
-            ret_data = []
-            for i in range(0, len(template_instance)):
-                ret_data.append([self._dataset[idx][i] for idx in index])
-            return ret_data
+            if isinstance(template_instance, (list, tuple)):  # ここは，
+                length = len(list(template_instance))
+                ret_data = []
+                for i in range(0, length):
+                    ret_data.append([list(self._dataset[idx])[i] for idx in index])
+                return ret_data
+            else:
+                return [self._dataset[idx] for idx in index]
         else:
             return self._dataset[index]
 
