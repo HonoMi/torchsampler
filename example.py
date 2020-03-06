@@ -39,7 +39,8 @@ def compare_sampler(dataset, label_fn):
 
 if __name__ == '__main__':
 
-    class MyDatset(VisionDataset):
+    class MyDataset(VisionDataset):
+        """クラス0に比べて1の方が多いようなデータセット"""
 
         def __init__(self):
             super().__init__(None)
@@ -52,18 +53,18 @@ if __name__ == '__main__':
         def __len__(self):
             return 1000
 
+    # Iterate custom dataset.
+    print('\n\ns== Iterate custom datset ==')
+    dataset = MyDataset()
+    compare_sampler(dataset,
+                    label_fn = lambda dataset, idx: dataset[idx][1])
+
     # Iterate native list.
     print('\n\n== Iterate native list ==')
     dataset = [
         (i, 1 if (i % 3 - 1) >= 0 else 0)
         for i in range(0, 1000)
     ]
-    dataset = MyDatset()
-    compare_sampler(dataset,
-                    label_fn = lambda dataset, idx: dataset[idx][1])
-
-    # Iterate custom dataset.
-    print('\n\ns== Iterate custom datset ==')
-    dataset = MyDatset()
+    dataset = MyDataset()
     compare_sampler(dataset,
                     label_fn = lambda dataset, idx: dataset[idx][1])
