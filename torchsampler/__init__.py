@@ -1,1 +1,2 @@
-from .imbalanced import ImbalancedDatasetSampler, DatasetInterface
+from .imbalanced_sampler import ImbalancedDatasetSampler, DatasetInterface
+from .dataloader import DataLoader

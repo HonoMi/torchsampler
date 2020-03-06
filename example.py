@@ -1,16 +1,23 @@
 import torch
+from torch.utils.data import DataLoader as PytorchDataloader
 
-from torchsampler import ImbalancedDatasetSampler, DatasetInterface
+from torchsampler import (
+    ImbalancedDatasetSampler,
+    DatasetInterface,
+    DataLoader as SimpleDataLoader,
+)
 
 
-def compare_sampler(dataset, label_fn):
+def compare_sampler(dataset,
+                    label_fn,
+                    dataloader_cls=PytorchDataloader):
 
     loaders = {
-        'raw loader': torch.utils.data.DataLoader(
+        'raw loader': dataloader_cls(
             dataset,
             batch_size=100,
         ),
-        'balanced loader': torch.utils.data.DataLoader(
+        'balanced loader': dataloader_cls(
             dataset,
             sampler=ImbalancedDatasetSampler(
                 dataset,
@@ -65,3 +72,14 @@ if __name__ == '__main__':
     dataset = MyDataset()
     compare_sampler(dataset,
                     label_fn = lambda dataset, idx: dataset[idx][1])
+
+    # Check our simple data loader
+    print('\n\n== Iterate native list ==')
+    dataset = [
+        (i, 1 if (i % 3 - 1) >= 0 else 0)
+        for i in range(0, 1000)
+    ]
+    dataset = MyDataset()
+    compare_sampler(dataset,
+                    label_fn = lambda dataset, idx: dataset[idx][1],
+                    dataloader_cls=SimpleDataLoader)
