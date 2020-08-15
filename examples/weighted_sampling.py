@@ -2,7 +2,8 @@ import torch
 from torch.utils.data import DataLoader as PytorchDataloader
 
 from torchsampler import (
-    ImbalancedDatasetSampler,
+    build_class_balanced_sampler,
+    WeightedDatsetSampler,
     DatasetInterface,
     DataLoader as SimpleDataLoader,
 )
@@ -12,6 +13,8 @@ def compare_sampler(dataset,
                     label_fn,
                     dataloader_cls=PytorchDataloader):
 
+    weights = [0.8, 0.2] + [0.0] * (len(dataset) - 2)
+
     loaders = {
         'raw loader': dataloader_cls(
             dataset,
@@ -19,9 +22,17 @@ def compare_sampler(dataset,
         ),
         'balanced loader': dataloader_cls(
             dataset,
-            sampler=ImbalancedDatasetSampler(
+            sampler=build_class_balanced_sampler(
                 dataset,
                 label_fn
+            ),
+            batch_size=100,
+        ),
+        'weighted loader': dataloader_cls(
+            dataset,
+            sampler=WeightedDatsetSampler(
+                dataset,
+                weights,
             ),
             batch_size=100,
         )

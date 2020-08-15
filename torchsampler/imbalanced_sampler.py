@@ -11,50 +11,48 @@ class DatasetInterface(PytorchDatset):
         raise NotImplementedError
 
 
+def build_class_balanced_sampler(dataset,
+                                 get_label_func,
+                                 indices=None,
+                                 size=None):
 
-class ImbalancedDatasetSampler(torch.utils.data.sampler.Sampler):
-    """Samples elements randomly from a given list of indices for imbalanced dataset
-    Arguments:
-        callback_get_label func: a callback-like function which takes two arguments - dataset and index
-        indices (list, optional): a list of indices
-        num_samples (int, optional): number of samples to draw
-    """
+    indices = indices or list(range(len(dataset)))
+    label_to_count = {}
+    for idx in indices:
+        label = get_label_func(dataset, idx)
+        if label in label_to_count:
+            label_to_count[label] += 1
+        else:
+            label_to_count[label] = 1
 
-    def __init__(self, dataset: DatasetInterface, callback_get_label, indices=None, num_samples=None):
-                
-        # if indices is not provided, 
-        # all elements in the dataset will be considered
-        self.indices = list(range(len(dataset))) \
-            if indices is None else indices
+    # weight for each sample
+    weights = [1.0 / label_to_count[get_label_func(dataset, idx)]
+               for idx in indices]
+    weights = torch.DoubleTensor(weights)
 
-        # define custom callback
-        self.callback_get_label = callback_get_label
+    return WeightedDatsetSampler(dataset,
+                                 weights,
+                                 indices=indices,
+                                 size=size)
 
-        # if num_samples is not provided, 
-        # draw `len(indices)` samples in each iteration
-        self.num_samples = len(self.indices) \
-            if num_samples is None else num_samples
-            
-        # distribution of classes in the dataset 
-        label_to_count = {}
-        for idx in self.indices:
-            label = self._get_label(dataset, idx)
-            if label in label_to_count:
-                label_to_count[label] += 1
-            else:
-                label_to_count[label] = 1
-                
-        # weight for each sample
-        weights = [1.0 / label_to_count[self._get_label(dataset, idx)]
-                   for idx in self.indices]
-        self.weights = torch.DoubleTensor(weights)
 
-    def _get_label(self, dataset, idx):
-        return self.callback_get_label(dataset, idx)
-                
+class WeightedDatsetSampler(torch.utils.data.sampler.Sampler):
+
+    def __init__(self,
+                 dataset: DatasetInterface,
+                 weights,
+                 indices=None,
+                 size=None):
+
+        self.indices = indices or list(range(len(dataset)))
+        self.size = size or len(self.indices)
+        self.weights = torch.tensor(weights)
+
     def __iter__(self):
-        return (self.indices[i] for i in torch.multinomial(
-            self.weights, self.num_samples, replacement=True))
+        i_s = torch.multinomial(self.weights,
+                                self.size,
+                                replacement=True)
+        return (self.indices[i] for i in i_s)
 
     def __len__(self):
-        return self.num_samples
+        return self.size
