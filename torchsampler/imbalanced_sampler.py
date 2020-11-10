@@ -52,8 +52,6 @@ class WeightedDatasetSampler(torch.utils.data.sampler.Sampler):
         i_s = torch.multinomial(self.weights,
                                 self.size,
                                 replacement=True)
-        import pudb
-        pudb.set_trace()
         return (self.indices[i] for i in i_s)
 
     def __len__(self):
