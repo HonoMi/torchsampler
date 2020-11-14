@@ -30,13 +30,13 @@ def build_class_balanced_sampler(dataset,
                for idx in indices]
     weights = torch.DoubleTensor(weights)
 
-    return WeightedDatsetSampler(dataset,
-                                 weights,
-                                 indices=indices,
-                                 size=size)
+    return WeightedDatasetSampler(dataset,
+                                  weights,
+                                  indices=indices,
+                                  size=size)
 
 
-class WeightedDatsetSampler(torch.utils.data.sampler.Sampler):
+class WeightedDatasetSampler(torch.utils.data.sampler.Sampler):
 
     def __init__(self,
                  dataset: DatasetInterface,
