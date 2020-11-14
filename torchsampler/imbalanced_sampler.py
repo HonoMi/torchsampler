@@ -46,6 +46,8 @@ class WeightedDatsetSampler(torch.utils.data.sampler.Sampler):
 
         self.indices = indices or list(range(len(dataset)))
         self.size = size or len(self.indices)
+        if len(weights) != self.size:
+            raise ValueError()
         self.weights = torch.tensor(weights)
 
     def __iter__(self):
