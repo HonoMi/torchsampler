@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader as PytorchDataloader
 
 from torchsampler import (
     build_class_balanced_sampler,
-    WeightedDatsetSampler,
+    WeightedDatasetSampler,
     DatasetInterface,
     DataLoader as SimpleDataLoader,
 )
@@ -30,7 +30,7 @@ def compare_sampler(dataset,
         ),
         'weighted loader': dataloader_cls(
             dataset,
-            sampler=WeightedDatsetSampler(
+            sampler=WeightedDatasetSampler(
                 dataset,
                 weights,
             ),
