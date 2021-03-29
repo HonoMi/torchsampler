@@ -56,7 +56,8 @@ class WeightedDatasetSampler(torch.utils.data.sampler.Sampler):
 
         # self._dataset_indices = dataset_indices or list(range(len(dataset)))
         self._size = dataset_size
-        self._dataset_indices = dataset_indices or torch.tensor(list(range(dataset_size)), dtype=torch.int64)
+        self._dataset_indices = dataset_indices\
+            or torch.tensor(list(range(dataset_size)), dtype=torch.int64, requires_grad=False)
 
         if sample_weights is None:
             self._sample_weights = None
@@ -74,29 +75,30 @@ class WeightedDatasetSampler(torch.utils.data.sampler.Sampler):
 
     def __iter__(self):
         if self._same_samples_over_epochs and self._cache is not None:
-            print('\n\n == WeightedDatasetSampler ==')
-            print(len(self._cache))
-            print(self._cache)
+            # print('\n\n == WeightedDatasetSampler ==')
+            # print(len(self._cache))
+            # print(self._cache)
             return iter(self._cache)
 
-        if self._sample_weights is None:
-            indices = self._dataset_indices
-        else:
-            indices = torch.multinomial(self._sample_weights,
-                                        self._size,
-                                        replacement=True)
-        if self._sample_then_shuffle:
-            indices = indices[torch.randperm(len(indices))]
+        with torch.no_grad():
+            if self._sample_weights is None:
+                indices = self._dataset_indices
+            else:
+                indices = torch.multinomial(self._sample_weights,
+                                            self._size,
+                                            replacement=True)
+            if self._sample_then_shuffle:
+                indices = indices[torch.randperm(len(indices))]
 
-        datsaet_indices = [self._dataset_indices[idx] for idx in indices]
+            datsaet_indices = [self._dataset_indices[idx] for idx in indices]
 
-        if self._same_samples_over_epochs:
-            self._cache = datsaet_indices
-        print('\n\n == WeightedDatasetSampler ==')
-        print(len(datsaet_indices))
-        print(datsaet_indices)
+            if self._same_samples_over_epochs:
+                self._cache = datsaet_indices
+            # print('\n\n == WeightedDatasetSampler ==')
+            # print(len(datsaet_indices))
+            # print(datsaet_indices)
 
-        return iter(datsaet_indices)
+            return iter(datsaet_indices)
 
     def __len__(self):
         return self._size
