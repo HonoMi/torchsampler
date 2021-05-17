@@ -67,8 +67,8 @@ class WeightedDatasetSampler(torch.utils.data.sampler.Sampler):
         else:
             if len(sample_weights) != self._size:
                 raise ValueError('len(weights) != datase size')
-            self._sample_weights = torch.tensor(sample_weights,
-                                                requires_grad=False)
+            self._sample_weights = torch.tensor(sample_weights, requires_grad=False)
+            self._sample_weights = self._sample_weights / self._sample_weights.sum()
         self._same_samples_over_epochs = same_samples_over_epochs
         self._sample_then_shuffle = sample_then_shuffle_every_epoch
         self._cache = None
