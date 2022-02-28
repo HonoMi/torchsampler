@@ -2,6 +2,9 @@ from typing import Optional
 
 import torch
 from torch.utils.data import Dataset as PytorchDatset
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class DatasetInterface(PytorchDatset):
@@ -52,7 +55,8 @@ class WeightedDatasetSampler(torch.utils.data.sampler.Sampler):
                  sample_weights: Optional[torch.Tensor],
                  same_samples_over_epochs=False,
                  sample_then_shuffle_every_epoch=False,
-                 dataset_indices=None):
+                 dataset_indices=None,
+                 seed_for_sampling: Optional[int] = None):
 
         # self._dataset_indices = dataset_indices or list(range(len(dataset)))
         self._size = dataset_size
@@ -72,6 +76,7 @@ class WeightedDatasetSampler(torch.utils.data.sampler.Sampler):
         self._same_samples_over_epochs = same_samples_over_epochs
         self._sample_then_shuffle = sample_then_shuffle_every_epoch
         self._cache = None
+        self._seed_for_sampling = seed_for_sampling
 
     def __iter__(self):
         if self._same_samples_over_epochs and self._cache is not None:
@@ -81,12 +86,26 @@ class WeightedDatasetSampler(torch.utils.data.sampler.Sampler):
             return iter(self._cache)
 
         with torch.no_grad():
+
             if self._sample_weights is None:
                 indices = self._dataset_indices
             else:
-                indices = torch.multinomial(self._sample_weights,
-                                            self._size,
-                                            replacement=True)
+                if self._seed_for_sampling:
+                    rand_state = torch.random.get_rng_state()
+
+                    logger.info('setting seed to "%d" temporarily for weighted sampling',
+                                self._seed_for_sampling)
+                    torch.manual_seed(self._seed_for_sampling)
+                    torch.cuda.manual_seed(self._seed_for_sampling)
+                    indices = torch.multinomial(self._sample_weights,
+                                                self._size,
+                                                replacement=True)
+                    torch.random.set_rng_state(rand_state)
+                else:
+                    indices = torch.multinomial(self._sample_weights,
+                                                self._size,
+                                                replacement=True)
+
             if self._sample_then_shuffle:
                 indices = indices[torch.randperm(len(indices))]
 
